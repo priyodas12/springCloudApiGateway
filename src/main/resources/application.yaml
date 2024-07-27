@@ -1,0 +1,29 @@
+server:
+  port: 9999  # The port on which the Spring Boot application (API Gateway) will run
+
+spring:
+  application:
+    name: api-gateway  # The name of the application, used for service registration in Eureka
+  cloud:
+    gateway:
+      routes:
+        - id: catalog-service-status  # A unique identifier for this route
+          uri: lb://catalog-service  # The URI to route to, with 'lb://' indicating load balancing via Eureka
+          predicates:
+            - Path=/api/v1/catalog/status  # Match requests with this path
+            - Method=GET  # Match requests using the HTTP GET method
+          filters:
+            - RemoveRequestHeader=Cookie  # Remove the 'Cookie' header from the request before forwarding
+            - RewritePath=/api/v1/catalog/status,/catalog/status
+      discovery:
+        locator:
+          enabled: true  # Enable service discovery to dynamically route to services registered in Eureka
+          lower-case-service-id: true  # Convert service IDs to lowercase to avoid case sensitivity issues
+
+eureka:
+  instance:
+    hostname: localhost # The hostname for this instance of the API Gateway in Eureka
+    preferIpAddress: true
+  client:
+    serviceUrl:
+      defaultZone: http://localhost:8761/eureka/  # The URL of the Eureka server for service registration and discovery
